@@ -20,6 +20,7 @@ class DrawView: UIView {
             }
         }
     }
+    var moveRecognizer: UIPanGestureRecognizer!
     
     override var canBecomeFirstResponder: Bool {
         return true
@@ -176,14 +177,15 @@ class DrawView: UIView {
         setNeedsDisplay()
     }
     
-    func handleDoubleTap() {
+    @objc func handleDoubleTap() {
         selectedLineIndex = nil
         currentLines.removeAll()
         finishedLines.removeAll()
         setNeedsDisplay()
     }
     
-    func handleSingleTap(at location: CGPoint) {
+    @objc func handleSingleTap(_ gestureRecognizer: UIGestureRecognizer) {
+        let location = gestureRecognizer.location(in: self)
         selectedLineIndex = indexOfLine(at: location)
         
         let menu = UIMenuController.shared
@@ -204,7 +206,10 @@ class DrawView: UIView {
         setNeedsDisplay()
     }
     
-    func handleLongPress(for state: UIGestureRecognizerState, at location: CGPoint) {
+    @objc func handleLongPress(_ gestureRecognizer: UIGestureRecognizer) {
+        let state = gestureRecognizer.state
+        let location = gestureRecognizer.location(in: self)
+        
         if state == .began {
             selectedLineIndex = indexOfLine(at: location)
             
@@ -216,5 +221,30 @@ class DrawView: UIView {
         }
         
         setNeedsDisplay()
+    }
+    
+    @objc func handlePan(_ gestureRecognizer: UIPanGestureRecognizer) {
+        print("Pan")
+        
+        if let index = selectedLineIndex {
+            if gestureRecognizer.state == .changed {
+                let translation = gestureRecognizer.translation(in: self)
+                
+                finishedLines[index].begin.x += translation.x
+                finishedLines[index].begin.y += translation.y
+                finishedLines[index].end.x += translation.x
+                finishedLines[index].end.y += translation.y
+                
+                gestureRecognizer.setTranslation(CGPoint.zero, in: self)
+                
+                setNeedsDisplay()
+            }
+        }
+    }
+}
+
+extension DrawView: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
     }
 }

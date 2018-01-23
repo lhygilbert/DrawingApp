@@ -21,53 +21,32 @@ class ViewController: UIViewController {
         view.isMultipleTouchEnabled = true
         view.backgroundColor = .white
         
-        setupGestureRecognizers()
+        setupGestureRecognizers(view as! DrawView)
     }
     
-    fileprivate func setupGestureRecognizers() {
-        let doubleTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(doubleTap))
+    fileprivate func setupGestureRecognizers(_ view: DrawView) {
+        let doubleTapRecognizer = UITapGestureRecognizer(target: view, action: #selector(view.handleDoubleTap))
         doubleTapRecognizer.numberOfTapsRequired = 2
         doubleTapRecognizer.delaysTouchesBegan = true
         view.addGestureRecognizer(doubleTapRecognizer)
         
-        let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(tap))
+        let tapRecognizer = UITapGestureRecognizer(target: view, action: #selector(view.handleSingleTap))
         tapRecognizer.delaysTouchesBegan = true
         tapRecognizer.require(toFail: doubleTapRecognizer)
         view.addGestureRecognizer(tapRecognizer)
         
-        let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPress))
+        let longPressRecognizer = UILongPressGestureRecognizer(target: view, action: #selector(view.handleLongPress))
         view.addGestureRecognizer(longPressRecognizer)
+        
+        view.moveRecognizer = UIPanGestureRecognizer(target: view, action: #selector(view.handlePan))
+        view.moveRecognizer.cancelsTouchesInView = false
+        view.moveRecognizer.delegate = view
+        view.addGestureRecognizer(view.moveRecognizer)
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-    }
-    
-    // MARK: - Gestures handlers
-
-    @objc func doubleTap() {
-        print("Double tap")
-        
-        let drawView = view as! DrawView
-        drawView.handleDoubleTap()
-    }
-    
-    @objc func tap(_ gestureRecognizer: UIGestureRecognizer) {
-        print("tap")
-        
-        let drawView = view as! DrawView
-        let point = gestureRecognizer.location(in: drawView)
-        drawView.handleSingleTap(at: point)
-    }
-    
-    @objc func longPress(_ gestureRecognizer: UIGestureRecognizer) {
-        print("long press")
-        
-        let drawView = view as! DrawView
-        let state = gestureRecognizer.state
-        let location = gestureRecognizer.location(in: drawView)
-        drawView.handleLongPress(for: state, at: location)
     }
 }
 
